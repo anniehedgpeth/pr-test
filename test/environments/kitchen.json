@@ -1,0 +1,8 @@
+{
+  "name": "kitchen",
+  "description": "",
+  "cookbook_versions": {
+  },
+  "override_attributes": {    
+  }
+}

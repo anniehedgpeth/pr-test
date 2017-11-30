@@ -1,0 +1,32 @@
+---
+driver:
+  name: azurerm
+  subscription_id: '2fe43321-0561-4861-ad82-0de986ccb208'
+  location: 'Central US'
+  machine_size: 'Standard_DS5_v2'
+
+provisioner:
+  name: chef_zero
+  require_chef_omnibus: '12.18.31' #12.20.3
+  client_rb:
+    exit_status: :enabled
+    environment: kitchen
+
+verifier:
+  name: inspec
+
+platforms:
+  - name: ubunutu1604
+    driver_config:
+      image_urn: Canonical:UbuntuServer:16.04-LTS:latest
+    transport:
+      ssh_key: ~/.ssh/id_kitchen-azurerm
+
+suites:
+  - name: pr-test
+    run_list:
+      - recipe[pr-test::default]
+    environments_path: test/environments
+    verifier:
+      inspec_tests:
+        - test/smoke/default
