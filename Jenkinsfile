@@ -7,7 +7,7 @@ def ad_tenantID = '8afe73f9-0d93-4821-a898-c5c2dc320953'
 def clientId = 'b9fc7478-f864-4f2d-b2c3-e57c58e45077'
 
 // the cookbook and current branch that is being built
-def branch = env.BRANCH_NAME
+def branch = env.BRANCH
 def cookbook = 'pr-test'
 currentBuild.displayName = "#${BUILD_NUMBER}; Branch: ${branch}"
 
@@ -42,7 +42,7 @@ def fetch(scm, cookbookDirectory, branch){
   ])
 }
 
-node('nick-test') {
+node('kitchen') {
   withCredentials([string(credentialsId: 'clientSecret', variable: 'EAT_Integration_Secret')]) {
     stage('Validate Parameters') {
       echo "cookbook: ${cookbook}"

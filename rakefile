@@ -1,0 +1,62 @@
+task default: [:clean, :style, :test]
+desc 'Removes any policy lock files present, berks lockfile, etc.'
+task :clean do
+  %w(
+    Berksfile.lock
+    .bundle
+    .cache
+    coverage
+    Gemfile.lock
+    .kitchen
+    metadata.json
+    vendor
+    policies/*.lock.json
+    commit.txt
+    rspec.xml
+    checkstyle-result.xml
+  ).each { |f| FileUtils.rm_rf(Dir.glob(f)) }
+end
+desc 'Run foodcritic and cookstyle on this cookbook'
+
+task style: 'style:all'
+namespace :style do
+  # Cookstyle
+  begin
+    require 'cookstyle'
+    require 'rubocop/rake_task'
+    RuboCop::RakeTask.new(:cookstyle) do |task|
+      # If we are in CI mode then add formatter options
+      # task.options.concat %w(
+      #   --require rubocop/formatter/checkstyle_formatter
+      #   --format RuboCop::Formatter::CheckstyleFormatter
+      #   -o reports/xml/checkstyle-result.xml
+      # ) if ENV['CI']
+    end
+  rescue
+    puts ">>> Gem load error: #{e}, omitting style:cookstyle" unless ENV['CI']
+  end
+  # Load foodcritic
+  begin
+    require 'foodcritic'
+    desc 'Run foodcritic style checks'
+    FoodCritic::Rake::LintTask.new(:foodcritic) do |task|
+      task.options = {
+				fail_tags: ['any'],
+				tags: %w(~FC019 ~FC069 ~FC078),				
+        progress: true,
+      }
+    end
+  rescue LoadError
+    puts ">>> Gem load error: #{e}, omitting style:foodcritic" unless ENV['CI']
+  end
+  task all: [:cookstyle, :foodcritic]
+end
+
+desc 'Run Test Kitchen'
+task :test do
+  # This will run kitchen create, converge, verify, and delete. "always" specifies to delete regardless of a passing or failing converge and/or verify.
+  # This is commented out until the Jenkins server is running Test Kitchen properly.
+  sh 'chef exec kitchen test -c 4 -d always'
+  # This will be replaced with the above command when Jenkins is running Test Kitchen properly.
+  # sh 'chef exec kitchen list'
+end
