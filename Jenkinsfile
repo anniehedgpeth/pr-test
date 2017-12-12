@@ -57,7 +57,7 @@ node('kitchen') {
         throw mpe;
       }
     }
-		notifyBitbucket()			// Notifies the Stash Instance of an INPROGRESS build
+		bitbucketStatusNotify()			// Notifies the Stash Instance of an INPROGRESS build
     stage('Lint') {
       notifyStash(building_pull_request)
       try {
@@ -96,6 +96,6 @@ node('kitchen') {
         currentBuild.result = 'FAILED'
       }
     }
-		notifyBitbucket()			// Notifies the Stash Instance of the build result
+		bitbucketStatusNotify()			// Notifies the Stash Instance of the build result
   }
 }
