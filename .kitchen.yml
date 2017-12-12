@@ -30,3 +30,8 @@ suites:
     verifier:
       inspec_tests:
         - test/smoke/default
+    attributes:
+      test_kitchen:
+        tenant_id: '8afe73f9-0d93-4821-a898-c5c2dc320953'
+        client_id: 'b9fc7478-f864-4f2d-b2c3-e57c58e45077'
+        client_secret: "<%= ENV['EAT_Integration_Secret'] %>"
