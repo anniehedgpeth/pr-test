@@ -56,7 +56,7 @@ desc 'Run Test Kitchen'
 task :test do
   # This will run kitchen create, converge, verify, and delete. "always" specifies to delete regardless of a passing or failing converge and/or verify.
   # This is commented out until the Jenkins server is running Test Kitchen properly.
-  # sh 'chef exec kitchen test -c 4 -d always'
+  sh 'chef exec kitchen test -c 4 -d always'
   # This will be replaced with the above command when Jenkins is running Test Kitchen properly.
-  sh 'chef exec kitchen list'
+  # sh 'chef exec kitchen list'
 end
