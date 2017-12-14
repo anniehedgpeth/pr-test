@@ -16,13 +16,26 @@ currentBuild.displayName = "#${BUILD_NUMBER}; Branch: ${branch}"
 def cookbookDirectory = "cookbooks/${cookbook}"
 
 // Everything below should not change unless you have a good reason :)
-def building_pull_request = env.pullRequestId != null
+// def building_pull_request = env.pullRequestId != null
 
-def notifyStash(building_pull_request){
-  if(building_pull_request){
-    step([$class: 'StashNotifier',
-      commitSha1: "${env.sourceCommitHash}"])
-  }
+// def notifyStash(building_pull_request){
+//   if(building_pull_request){
+//     step([$class: 'StashNotifier',
+//       commitSha1: "${env.sourceCommitHash}"])
+//   }
+// }
+
+def notifyStash(){
+  step([$class: 'StashNotifier', commitSha1: "${env.sourceCommitHash}", 
+                                 considerUnstableAsSuccess: false,
+                                 credentialsId: '5adcc81c-d389-4265-bfd6-1f5bb9a880ef',
+                                 disableInprogressNotification: false,
+                                 ignoreUnverifiedSSLPeer: true,
+                                 includeBuildNumberInKey: false,
+                                 prependParentProjectKey: false,
+                                 projectKey: '',
+                                 stashServerBaseUrl: 'https://git.kcura.com'
+	])
 }
 
 def rake(command) {
@@ -58,7 +71,7 @@ node('kitchen') {
       }
     }
     stage('Lint') {
-      notifyStash(building_pull_request)
+      notifyStash()
       try {
         dir(cookbookDirectory){
           rake('clean')
@@ -77,6 +90,7 @@ node('kitchen') {
           }
         }
         currentBuild.result = 'SUCCESS'
+				notifyStash()
       }
       catch(err){
         currentBuild.result = 'FAILED'
@@ -90,6 +104,7 @@ node('kitchen') {
           rake('test')
         }
         currentBuild.result = 'SUCCESS'
+				notifyStash()
       }
       catch(err){
         currentBuild.result = 'FAILED'
