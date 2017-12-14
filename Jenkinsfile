@@ -25,8 +25,8 @@ def cookbookDirectory = "cookbooks/${cookbook}"
 //   }
 // }
 
-def notifyStash(commitHash){
-  step([$class: 'StashNotifier', commitSha1: "${commitHash}", 
+def notifyStash(){
+  step([$class: 'StashNotifier', commitSha1: "${env.sourceCommitHash}", 
                                  considerUnstableAsSuccess: false,
                                  credentialsId: '5adcc81c-d389-4265-bfd6-1f5bb9a880ef',
                                  disableInprogressNotification: false,
@@ -71,7 +71,7 @@ node('jenkins-minion-8') {
       }
     }
     stage('Lint') {
-			notifyStash("${env.sourceCommitHash}")
+			notifyStash()
 			try {
 				dir(cookbookDirectory){
 					rake('clean')
@@ -90,11 +90,10 @@ node('jenkins-minion-8') {
 					}
 				}
 				currentBuild.result = 'SUCCESS'
-				notifyStash("${env.sourceCommitHash}")
 			}
 			catch(err){
 				currentBuild.result = 'FAILED'
-				notifyStash("${env.sourceCommitHash}")
+				notifyStash()
 				throw err
 			}
 		}
@@ -104,10 +103,12 @@ node('jenkins-minion-8') {
 				  rake('test')
 				}
 				currentBuild.result = 'SUCCESS'
-				notifyStash("${env.sourceCommitHash}")
 			}
 			catch(err){
 			  currentBuild.result = 'FAILED'
+			}
+			finally{
+				notifyStash()
 			}
 		}
 	}
