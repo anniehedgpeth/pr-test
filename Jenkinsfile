@@ -7,7 +7,7 @@ def ad_tenantID = '8afe73f9-0d93-4821-a898-c5c2dc320953'
 def clientId = 'b9fc7478-f864-4f2d-b2c3-e57c58e45077'
 
 // the cookbook and current branch that is being built
-def branch = env.BRANCH
+def branch = env.BRANCH_NAME
 def cookbook = 'pr-test'
 currentBuild.displayName = "#${BUILD_NUMBER}; Branch: ${branch}"
 
@@ -61,6 +61,7 @@ node('jenkins-minion-8') {
       echo "cookbook: ${cookbook}"
       echo "current branch: ${branch}"
       echo "checkout directory: ${cookbookDirectory}"
+			echo "current commit: ${env.sourceCommitHash}"
       try {
         subscriptionId
         branch
