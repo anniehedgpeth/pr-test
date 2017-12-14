@@ -25,8 +25,18 @@ def cookbookDirectory = "cookbooks/${cookbook}"
 //   }
 // }
 
-def notifyStash(){
-  step([$class: 'StashNotifier', commitSha1: env.sourceCommitHash, 
+def get_sha1(cookbookDirectory) {
+	dir(cookbookDirectory) {
+		def sha1 = bat returnStdout: true, script: "git rev-parse HEAD"
+		sha1 = sha1.trim().split('\r\n')[1]
+		echo "Sha1: ${sha1} for checkout in ${cookbookDirectory}"
+		return sha1
+	}
+}
+
+def notifyStash(cookbookDirectory){
+	def sha1 = get_sha1(cookbookDirectory)
+  step([$class: 'StashNotifier', commitSha1: sha1, 
                                  considerUnstableAsSuccess: false,
                                  credentialsId: '5adcc81c-d389-4265-bfd6-1f5bb9a880ef',
                                  disableInprogressNotification: false,
@@ -61,7 +71,6 @@ node('jenkins-minion-8') {
       echo "cookbook: ${cookbook}"
       echo "current branch: ${branch}"
       echo "checkout directory: ${cookbookDirectory}"
-			echo "current commit: ${env.sourceCommitHash}"
       try {
         subscriptionId
         branch
@@ -72,7 +81,7 @@ node('jenkins-minion-8') {
       }
     }
     stage('Lint') {
-			notifyStash()
+			notifyStash(cookbookDirectory)
 			try {
 				dir(cookbookDirectory){
 					rake('clean')
@@ -94,7 +103,7 @@ node('jenkins-minion-8') {
 			}
 			catch(err){
 				currentBuild.result = 'FAILED'
-				notifyStash()
+				notifyStash(cookbookDirectory)
 				throw err
 			}
 		}
@@ -109,7 +118,7 @@ node('jenkins-minion-8') {
 			  currentBuild.result = 'FAILED'
 			}
 			finally{
-				notifyStash()
+				notifyStash(cookbookDirectory)
 			}
 		}
 	}
