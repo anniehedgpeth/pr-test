@@ -71,7 +71,7 @@ node('jenkins-minion-8') {
       }
     }
     stage('Lint') {
-			notifyStash(env.sourceCommitHash)
+			notifyStash("${env.sourceCommitHash}")
 			try {
 				dir(cookbookDirectory){
 					rake('clean')
@@ -90,11 +90,11 @@ node('jenkins-minion-8') {
 					}
 				}
 				currentBuild.result = 'SUCCESS'
-				notifyStash(env.sourceCommitHash)
+				notifyStash("${env.sourceCommitHash}")
 			}
 			catch(err){
 				currentBuild.result = 'FAILED'
-				notifyStash(building_pull_request)
+				notifyStash("${env.sourceCommitHash}")
 				throw err
 			}
 		}
@@ -104,7 +104,7 @@ node('jenkins-minion-8') {
 				  rake('test')
 				}
 				currentBuild.result = 'SUCCESS'
-				notifyStash()
+				notifyStash("${env.sourceCommitHash}")
 			}
 			catch(err){
 			  currentBuild.result = 'FAILED'
