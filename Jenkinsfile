@@ -55,7 +55,7 @@ def fetch(scm, cookbookDirectory, branch){
   ])
 }
 
-node('kitchen') {
+node('jenkins-minion-8') {
   withCredentials([string(credentialsId: 'clientSecret', variable: 'EAT_Integration_Secret')]) {
     stage('Validate Parameters') {
       echo "cookbook: ${cookbook}"
