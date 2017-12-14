@@ -26,7 +26,7 @@ def cookbookDirectory = "cookbooks/${cookbook}"
 // }
 
 def notifyStash(){
-  step([$class: 'StashNotifier', commitSha1: "${env.sourceCommitHash}", 
+  step([$class: 'StashNotifier', commitSha1: env.sourceCommitHash, 
                                  considerUnstableAsSuccess: false,
                                  credentialsId: '5adcc81c-d389-4265-bfd6-1f5bb9a880ef',
                                  disableInprogressNotification: false,
