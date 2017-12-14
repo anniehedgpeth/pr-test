@@ -6,25 +6,18 @@ def subscriptionId = '2fe43321-0561-4861-ad82-0de986ccb208'
 def ad_tenantID = '8afe73f9-0d93-4821-a898-c5c2dc320953'
 def clientId = 'b9fc7478-f864-4f2d-b2c3-e57c58e45077'
 
-// the cookbook and current branch that is being built
+// The cookbook and current branch that is being built
 def branch = env.BRANCH_NAME
 def cookbook = 'pr-test'
 currentBuild.displayName = "#${BUILD_NUMBER}; Branch: ${branch}"
 
 // OTHER (Unchanged)
+// **** Everything below should not need to change ****
+
 // the checkout directory for the cookbook; usually not changed
 def cookbookDirectory = "cookbooks/${cookbook}"
 
-// Everything below should not change unless you have a good reason :)
-// def building_pull_request = env.pullRequestId != null
-
-// def notifyStash(building_pull_request){
-//   if(building_pull_request){
-//     step([$class: 'StashNotifier',
-//       commitSha1: "${env.sourceCommitHash}"])
-//   }
-// }
-
+// Getting the current commit
 def get_sha1(cookbookDirectory) {
 	dir(cookbookDirectory) {
 		def sha1 = bat returnStdout: true, script: "git rev-parse HEAD"
@@ -34,11 +27,12 @@ def get_sha1(cookbookDirectory) {
 	}
 }
 
+// Configuring the Stash Notifier in Jenkins to talk to BitBucket
 def notifyStash(cookbookDirectory){
 	def sha1 = get_sha1(cookbookDirectory)
   step([$class: 'StashNotifier', commitSha1: sha1, 
                                  considerUnstableAsSuccess: false,
-                                 credentialsId: '5adcc81c-d389-4265-bfd6-1f5bb9a880ef',
+                                 credentialsId: '5adcc81c-d389-4265-bfd6-1f5bb9a880ef', // Credential in Jenkins corresponds to the talosci user (safe for source control)
                                  disableInprogressNotification: false,
                                  ignoreUnverifiedSSLPeer: true,
                                  includeBuildNumberInKey: false,
@@ -48,10 +42,12 @@ def notifyStash(cookbookDirectory){
 	])
 }
 
+// To run the rake commands in the rakefile
 def rake(command) {
   bat "chef exec rake ${command} CI=false"
 }
 
+// Checking out branch
 def fetch(scm, cookbookDirectory, branch){
   checkout([$class: 'GitSCM',
     branches: scm.branches,
@@ -65,6 +61,7 @@ def fetch(scm, cookbookDirectory, branch){
   ])
 }
 
+// Cookbook build and returning results to BitBucket
 node('jenkins-minion-8') {
   withCredentials([string(credentialsId: 'clientSecret', variable: 'EAT_Integration_Secret')]) {
     stage('Validate Parameters') {
