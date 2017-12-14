@@ -25,8 +25,8 @@ def cookbookDirectory = "cookbooks/${cookbook}"
 //   }
 // }
 
-def notifyStash(){
-  step([$class: 'StashNotifier', commitSha1: "${env.sourceCommitHash}", 
+def notifyStash(commitHash){
+  step([$class: 'StashNotifier', commitSha1: "${commitHash}", 
                                  considerUnstableAsSuccess: false,
                                  credentialsId: '5adcc81c-d389-4265-bfd6-1f5bb9a880ef',
                                  disableInprogressNotification: false,
@@ -71,44 +71,44 @@ node('jenkins-minion-8') {
       }
     }
     stage('Lint') {
-      notifyStash()
-      try {
-        dir(cookbookDirectory){
-          rake('clean')
-        }
-        dir(cookbookDirectory) {
-          try {
-            rake('style')
-          }
-          finally {
-            step([$class: 'CheckStylePublisher',
-                  canComputeNew: false,
-                  defaultEncoding: '',
-                  healthy: '',
-                  pattern: '**/reports/xml/checkstyle-result.xml',
-                  unHealthy: ''])
-          }
-        }
-        currentBuild.result = 'SUCCESS'
+			notifyStash(env.sourceCommitHash)
+			try {
+				dir(cookbookDirectory){
+					rake('clean')
+				}
+				dir(cookbookDirectory) {
+					try {
+						rake('style')
+					}
+					finally {
+						step([$class: 'CheckStylePublisher',
+									 canComputeNew: false,
+									 defaultEncoding: '',
+									 healthy: '',
+									 pattern: '**/reports/xml/checkstyle-result.xml',
+									 unHealthy: ''])
+					}
+				}
+				currentBuild.result = 'SUCCESS'
+				notifyStash(env.sourceCommitHash)
+			}
+			catch(err){
+				currentBuild.result = 'FAILED'
+				notifyStash(building_pull_request)
+				throw err
+			}
+		}
+		stage('Functional (Kitchen)') {
+			try{
+				dir(cookbookDirectory) {
+				  rake('test')
+				}
+				currentBuild.result = 'SUCCESS'
 				notifyStash()
-      }
-      catch(err){
-        currentBuild.result = 'FAILED'
-        notifyStash(building_pull_request)
-        throw err
-      }
-    }
-    stage('Functional (Kitchen)') {
-      try{
-        dir(cookbookDirectory) {
-          rake('test')
-        }
-        currentBuild.result = 'SUCCESS'
-				notifyStash()
-      }
-      catch(err){
-        currentBuild.result = 'FAILED'
-      }
-    }
-  }
+			}
+			catch(err){
+			  currentBuild.result = 'FAILED'
+			}
+		}
+	}
 }
