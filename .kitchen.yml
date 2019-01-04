@@ -1,13 +1,14 @@
 ---
 driver:
   name: azurerm
-  subscription_id: '2fe43321-0561-4861-ad82-0de986ccb208'
+  subscription_id: REPLACE
   location: 'Central US'
-  machine_size: 'Standard_DS5_v2'
+  machine_size: Standard_DS5_v2
 
 provisioner:
   name: chef_zero
-  require_chef_omnibus: '12.18.31' #12.20.3
+  product_name: chef
+  product_version: 14.4.56
   client_rb:
     exit_status: :enabled
     environment: kitchen
@@ -30,8 +31,4 @@ suites:
     verifier:
       inspec_tests:
         - test/smoke/default
-    attributes:
-      test_kitchen:
-        tenant_id: '8afe73f9-0d93-4821-a898-c5c2dc320953'
-        client_id: 'b9fc7478-f864-4f2d-b2c3-e57c58e45077'
-        client_secret: "<%= ENV['EAT_Integration_Secret'] %>"
+
