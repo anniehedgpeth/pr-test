@@ -1,9 +1,13 @@
 ---
 driver:
   name: azurerm
-  subscription_id: REPLACE
+  subscription_id: '256b9129-f6f8-4ef0-aa11-ebbb2a92a4c9'
   location: 'Central US'
-  machine_size: Standard_DS5_v2
+  machine_size: Standard_D2_V2
+  image_urn: MicrosoftWindowsServer:WindowsServer:2019-Datacenter:latest
+  username: <%= ENV['TK_USER'] %>
+  password: <%= ENV['TK_PASS'] %>
+
 
 provisioner:
   name: chef_zero
@@ -16,19 +20,32 @@ provisioner:
 verifier:
   name: inspec
 
+transport:
+  name: winrm
+  elevated: true
+
+provisioner:
+  name: chef_zero
+  product_name: chef
+  product_version: 14.10.9
+  deprecations_as_errors: true
+  retry_on_exit_code:
+  - 20
+  - 35
+  max_retries: 10
+  wait_for_retry: 180
+  client_rb:
+    exit_status: :enabled
+
+verifier:
+  name: inspec
+  inspec_tests:
+    - git: ssh://git@git.kcura.com:7999/~annie.hedgpeth/pr-test.git
+
 platforms:
-  - name: ubunutu1604
-    driver_config:
-      image_urn: Canonical:UbuntuServer:16.04-LTS:latest
-    transport:
-      ssh_key: ~/.ssh/id_kitchen-azurerm
+  - name: windowsserver-2019
 
 suites:
-  - name: pr-test
+  - name: inspec-poc
     run_list:
       - recipe[pr-test::default]
-    environments_path: test/environments
-    verifier:
-      inspec_tests:
-        - test/smoke/default
-
